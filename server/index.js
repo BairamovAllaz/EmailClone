@@ -1,24 +1,33 @@
-const express = require("express");
-const app = express();
+const app = require("express")();
+const server = require("http").createServer(app);
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "http://localhost:3000"
+  },
+});
 const coockieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const session = require("express-cookie");
 dotenv.config();
-
-app.use(express.json());
 app.use(
-  express.urlencoded({
+  cors({
+    credentials: true,
+    origin: ["http://localhost:3000"]
+  })
+);
+app.use(require("express").json());
+app.use(
+  require("express").urlencoded({
     extended: false,
   })
 );
-
 app.all("/*", function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
   next();
 });
-
+app.use(coockieParser());
 app.set("trust proxy", 1); // trust first proxy
 app.use(
   session({
@@ -32,15 +41,21 @@ app.use(
   })
 );
 
-app.use(
-  cors({
-    credentials: true,
-    origin: ["http://localhost:3000/"],
-    optionSuccessStatus: 200,
-    exposedHeaders: ["Set-Cookie", "Date", "ETag"],
-  })
-);
-app.use(coockieParser());
+io.on("connection", socket => {
+  console.log("A user is connected");
+
+  socket.on("message", message => {
+    console.log(`message from ${socket.id} : ${message}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`socket ${socket.id} disconnected`);
+  });
+});
+module.exports = io;
+
+
+
 
 app.get("/", (req, res) => {
   res.send("Hello world");
@@ -52,6 +67,6 @@ app.get("/", (req, res) => {
 const api = require("./Router/Api");
 app.use("/api", api);
 
-app.listen(process.env.PORT || 5100, () => {
+server.listen(process.env.PORT || 5100, () => {
   console.log("Connected" + 5100);
 });

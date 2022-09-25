@@ -1,4 +1,5 @@
 const express = require("express"); 
+const io = require("../index");
 const router = express.Router(); 
 const database = require("../SQL/sqlconnector")
 router.get("/",(req,res) => { 
@@ -42,8 +43,6 @@ function GetUsers() {
     });
   });
 }
-
-
 router.post("/addMessage", async (req, res) => {
   try {
     const { toUser,fromUser,messageTitle,messageText } = req.body;
@@ -54,6 +53,8 @@ router.post("/addMessage", async (req, res) => {
         messageText
     }
     const insertedId = await AddMessage(user);
+    const messages = await GetAllMessages();
+    io.emit("message-added",messages);
     res.status(200).send("ok");
   } catch (err) {
     console.log(err);
