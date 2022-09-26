@@ -94,13 +94,16 @@ function GetAllMessages() {
 
 router.post("/addAnswer", async (req, res) => {
   try {
-    const { messageId, sendUser, answerTime } = req.body;
-    const message = {
+    const { messageId, sendUser,message } = req.body;
+    const Answer = {
       messageId,
       sendUser,
-      answerTime,
+      message,
+      answerTime: new Date()
     };
-    const insertedId = await AddAnswer(message);
+    const insertedId = await AddAnswer(Answer);
+    const Answers = await GetAnswerById(Answer.messageId);
+    io.emit("answer-added", Answers);
     res.status(200).send("ok");
   } catch (err) {
     console.log(err);
@@ -110,15 +113,36 @@ router.post("/addAnswer", async (req, res) => {
 function AddAnswer(Message) {
   return new Promise((resolve, reject) => {
     const sqlString =
-      "INSERT INTO messages(messageId,sendUser,answerTime) VALUES(?,?,?)";
+      "INSERT INTO table_answers(messageId,sendUser,message,answerTime) VALUES(?,?,?,?)";
     database.query(
       sqlString,
-      [Message.messageId, Message.sendUser, Message.answerTime],
+      [Message.messageId, Message.sendUser,Message.message, Message.answerTime],
       (err, result, field) => {
+        if(err) console.log(err)
         resolve(result);
       }
     );
   });
 }
+
+router.get("/getAnswer/:id", async (req, res) => {
+  try {
+    const messageId = req.params.id;
+    const answers = await GetAnswerById(messageId);
+    res.status(200).send(answers);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+function GetAnswerById(messageId) {
+  return new Promise((resolve, reject) => {
+    const sqlString = "SELECT * FROM table_answers WHERE messageId = ?";
+    database.query(sqlString,messageId, (err, result, field) => {
+      resolve(result);
+    });
+  });
+}
+
 
 module.exports = router;
