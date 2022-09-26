@@ -3,7 +3,6 @@ CREATE TABLE user
     Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     user_name VARCHAR(100) NOT NULL UNIQUE
 );
-
 CREATE TABLE messages(
     Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     ToUser VARCHAR(100) NOT NULL,
@@ -12,6 +11,15 @@ CREATE TABLE messages(
     MessageText VARCHAR(500) NOT NULL
 );
 
+CREATE TABLE table_answers(
+    Id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    messageId INT NOT NULL,
+    sendUser VARCHAR(100) NOT NULL,
+    message VARCHAR(100) NOT NULL,
+    answerTime DATETIME NOT NULL
+);
+
+
 INSERT IGNORE INTO user(user_name)
 VALUES ('Donald');
 
@@ -19,3 +27,4 @@ INSERT IGNORE INTO user(user_name)
 VALUES ('Donald');
 
 DROP TABLE user;
+DROP TABLE table_answers;
